@@ -1,3 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Schedify</string>
+
+    <!-- Dialog / Input strings -->
+    <string name="hint_activity_name">Nama Kegiatan</string>
+    <string name="hint_start_time">Start (HH:mm)</string>
+    <string name="hint_end_time">End (HH:mm)</string>
+    <string name="hint_location">Lokasi / Ruang (opsional)</string>
+    <string name="title_add_schedule">Tambah Jadwal Baru</string>
+    <string name="title_edit_schedule">Edit Jadwal</string>
+    <string name="btn_save">Simpan</string>
+    <string name="btn_cancel">Batal</string>
+    <string name="btn_delete">Hapus</string>
+
+    <!-- Messages -->
+    <string name="msg_fill_fields">Isi semua field (judul &amp; waktu)</string>
+    <string name="msg_time_invalid">Waktu mulai harus sebelum waktu selesai</string>
+    <string name="msg_time_format_invalid">Format waktu tidak valid (HH:mm)</string>
+    <string name="msg_saved">Jadwal disimpan</string>
+    <string name="msg_updated">Jadwal diupdate</string>
+    <string name="msg_deleted">Jadwal dihapus</string>
+    <string name="action_undo">Undo</string>
+
+    <!-- Countdown strings -->
+    <string name="next_activity">Kegiatan berikutnya: %1$s (%2$s)</string>
+    <string name="no_more_activities">Tidak ada kegiatan lagi hari ini</string>
+
+    <!-- Delete confirmation -->
+    <string name="confirm_delete_title">Hapus kegiatan?</string>
+    <string name="confirm_delete_message">Apakah Anda yakin ingin menghapus kegiatan ini? Tindakan ini dapat dibatalkan via Undo.</string>
+
+    <!-- Accessibility -->
+    <string name="desc_add_fab">Tambah jadwal baru</string>
 </resources>

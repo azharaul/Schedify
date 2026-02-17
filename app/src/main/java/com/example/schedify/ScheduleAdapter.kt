@@ -19,6 +19,7 @@ class ScheduleAdapter(
 
     class ScheduleViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvScheduleTitle)
+        val tvLocation: TextView = view.findViewById(R.id.tvScheduleLocation)
         val tvTime: TextView = view.findViewById(R.id.tvScheduleTime)
         val viewColorTag: View = view.findViewById(R.id.viewColorTag)
         val cardView: MaterialCardView = view as MaterialCardView
@@ -32,10 +33,18 @@ class ScheduleAdapter(
 
     override fun onBindViewHolder(holder: ScheduleViewHolder, position: Int) {
         val schedule = schedules[position]
+
+        // Title and separate location field
         holder.tvTitle.text = schedule.title
+        if (schedule.location.isNotBlank()) {
+            holder.tvLocation.visibility = View.VISIBLE
+            holder.tvLocation.text = schedule.location
+        } else {
+            holder.tvLocation.visibility = View.GONE
+        }
+
         holder.tvTime.text = schedule.time
 
-        // ...existing code...
         val color = when (schedule.day) {
             "Senin" -> "#0072B2"
             "Selasa" -> "#E69F00"
@@ -46,7 +55,6 @@ class ScheduleAdapter(
         }
         holder.viewColorTag.setBackgroundColor(Color.parseColor(color))
 
-        // ...existing code...
         if (isCurrentSchedule(schedule)) {
             holder.cardView.strokeColor = Color.parseColor(color)
             holder.cardView.strokeWidth = 6
@@ -57,44 +65,21 @@ class ScheduleAdapter(
             holder.cardView.cardElevation = 0f
         }
 
-        // Long click listener untuk edit/delete
-        holder.cardView.setOnLongClickListener {
-            showScheduleMenu(holder.itemView, schedule, onEditClick, onDeleteClick)
-            true
+        // Restore single-tap edit behavior: single tap opens edit dialog
+        holder.cardView.isClickable = true
+        holder.cardView.setOnClickListener {
+            onEditClick(schedule)
         }
+
+        // Long-press menu is removed as requested
     }
 
-    private fun showScheduleMenu(
-        view: View,
-        schedule: Schedule,
-        onEditClick: (Schedule) -> Unit,
-        onDeleteClick: (Schedule) -> Unit
-    ) {
-        val popup = android.widget.PopupMenu(view.context, view)
-        popup.menuInflater.inflate(R.menu.schedule_menu, popup.menu)
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_edit -> {
-                    onEditClick(schedule)
-                    true
-                }
-                R.id.action_delete -> {
-                    onDeleteClick(schedule)
-                    true
-                }
-                else -> false
-            }
-        }
-        popup.show()
-    }
-
-    // ...existing code...
     private fun isCurrentSchedule(schedule: Schedule): Boolean {
         try {
             val calendar = Calendar.getInstance()
             val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
             val currentTimeStr = sdf.format(calendar.time)
-            
+
             val currentDayName = when (calendar.get(Calendar.DAY_OF_WEEK)) {
                 Calendar.MONDAY -> "Senin"
                 Calendar.TUESDAY -> "Selasa"
@@ -110,7 +95,7 @@ class ScheduleAdapter(
 
             val times = schedule.time.split(" – ")
             if (times.size < 2) return false
-            
+
             val startTime = times[0].trim()
             val endTime = times[1].trim()
 
