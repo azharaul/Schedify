@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212"
+    tools:context=".MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#121212"
+        app:elevation="0dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="16dp">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginBottom="4dp"
+                android:text="Schedify"
+                android:textColor="#E1E1E1"
+                android:textSize="28sp"
+                android:textStyle="bold"
+                android:letterSpacing="-0.02" />
+
+            <TextView
+                android:id="@+id/tvCountdown"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginBottom="16dp"
+                android:text="Kuliah berikutnya: --"
+                android:textColor="#9AA0A6"
+                android:textSize="14sp" />
+
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tabLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                app:tabMode="scrollable"
+                app:tabGravity="fill"
+                app:tabIndicatorHeight="3dp"
+                app:tabIndicatorFullWidth="false"
+                app:tabIndicatorColor="#56B4E9"
+                app:tabSelectedTextColor="#FFFFFF"
+                app:tabTextColor="#9AA0A6"
+                app:tabRippleColor="@android:color/transparent"
+                app:tabIndicatorAnimationMode="elastic">
+
+                <com.google.android.material.tabs.TabItem android:text="Senin" />
+                <com.google.android.material.tabs.TabItem android:text="Selasa" />
+                <com.google.android.material.tabs.TabItem android:text="Rabu" />
+                <com.google.android.material.tabs.TabItem android:text="Kamis" />
+                <com.google.android.material.tabs.TabItem android:text="Jumat" />
+                <com.google.android.material.tabs.TabItem android:text="Sabtu" />
+                <com.google.android.material.tabs.TabItem android:text="Minggu" />
+            </com.google.android.material.tabs.TabLayout>
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSchedules"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp"
+        tools:listitem="@layout/item_schedule" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
