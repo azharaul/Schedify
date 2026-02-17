@@ -5,17 +5,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ScheduleAdapter(
-    private val schedules: List<Schedule>,
+class ScheduleListAdapter(
     private val onEditClick: (Schedule) -> Unit = {},
     private val onDeleteClick: (Schedule) -> Unit = {}
-) :
-    RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder>() {
+) : ListAdapter<Schedule, ScheduleListAdapter.ScheduleViewHolder>(DIFF) {
+
+    companion object {
+        private val DIFF = object : DiffUtil.ItemCallback<Schedule>() {
+            override fun areItemsTheSame(oldItem: Schedule, newItem: Schedule): Boolean = oldItem.id == newItem.id
+            override fun areContentsTheSame(oldItem: Schedule, newItem: Schedule): Boolean = oldItem == newItem
+        }
+    }
 
     class ScheduleViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val tvTitle: TextView = view.findViewById(R.id.tvScheduleTitle)
@@ -26,15 +33,12 @@ class ScheduleAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScheduleViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_schedule, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_schedule, parent, false)
         return ScheduleViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ScheduleViewHolder, position: Int) {
-        val schedule = schedules[position]
-
-        // Title and separate location field
+        val schedule = getItem(position)
         holder.tvTitle.text = schedule.title
         if (schedule.location.isNotBlank()) {
             holder.tvLocation.visibility = View.VISIBLE
@@ -42,7 +46,6 @@ class ScheduleAdapter(
         } else {
             holder.tvLocation.visibility = View.GONE
         }
-
         holder.tvTime.text = schedule.time
 
         val color = when (schedule.day) {
@@ -65,13 +68,8 @@ class ScheduleAdapter(
             holder.cardView.cardElevation = 0f
         }
 
-        // Restore single-tap edit behavior: single tap opens edit dialog
         holder.cardView.isClickable = true
-        holder.cardView.setOnClickListener {
-            onEditClick(schedule)
-        }
-
-        // Long-press menu is removed as requested
+        holder.cardView.setOnClickListener { onEditClick(schedule) }
     }
 
     private fun isCurrentSchedule(schedule: Schedule): Boolean {
@@ -104,6 +102,4 @@ class ScheduleAdapter(
             return false
         }
     }
-
-    override fun getItemCount(): Int = schedules.size
 }

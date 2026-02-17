@@ -17,7 +17,7 @@ class AddScheduleDialog(
     private val onSave: (Schedule) -> Unit,
     private val onDelete: (Schedule) -> Unit = {}
 ) {
-    fun show(scheduleToEdit: Schedule? = null) {
+    fun show(scheduleToEdit: Schedule? = null, preselectedDay: String? = null) {
         val inflater = android.view.LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.dialog_add_schedule, null)
 
@@ -64,6 +64,12 @@ class AddScheduleDialog(
             }
             etLocation.setText(scheduleToEdit.location)
             spinnerDay.setSelection(days.indexOf(scheduleToEdit.day))
+        } else {
+            // if creating new and preselectedDay provided, select it
+            preselectedDay?.let { pd ->
+                val idx = days.indexOf(pd)
+                if (idx >= 0) spinnerDay.setSelection(idx)
+            }
         }
 
         val builder = MaterialAlertDialogBuilder(context)

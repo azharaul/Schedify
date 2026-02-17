@@ -18,6 +18,7 @@ class DayScheduleFragment : Fragment() {
     private val viewModel: ScheduleViewModel by activityViewModels()
     private lateinit var dayName: String
     private lateinit var rvDaySchedules: RecyclerView
+    private lateinit var adapter: ScheduleListAdapter
 
     companion object {
         private const val ARG_DAY = "arg_day"
@@ -42,6 +43,20 @@ class DayScheduleFragment : Fragment() {
         val v = inflater.inflate(R.layout.fragment_day_schedule, container, false)
         rvDaySchedules = v.findViewById(R.id.rvDaySchedules)
         rvDaySchedules.layoutManager = LinearLayoutManager(requireContext())
+        adapter = ScheduleListAdapter(
+            onEditClick = { schedule ->
+                (activity as? MainActivity)?.let { act ->
+                    AddScheduleDialog(act,
+                        { updated -> act.viewModel.updateSchedule(updated); act.showSnackbar(act.getString(R.string.msg_updated)) },
+                        { toDelete -> act.deleteWithUndo(toDelete) }
+                    ).show(schedule)
+                }
+            },
+            onDeleteClick = { schedule ->
+                (activity as? MainActivity)?.deleteWithUndo(schedule)
+            }
+        )
+        rvDaySchedules.adapter = adapter
         return v
     }
 
@@ -52,21 +67,8 @@ class DayScheduleFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.allSchedules.collect { schedules ->
                 val filtered = schedules.filter { it.day == dayName }
-                rvDaySchedules.adapter = ScheduleAdapter(filtered,
-                    onEditClick = { schedule ->
-                        (activity as? MainActivity)?.let { act ->
-                            AddScheduleDialog(act,
-                                { updated -> act.viewModel.updateSchedule(updated); act.runOnUiThread { Snackbar.make(act.mainLayout, act.getString(R.string.msg_updated), Snackbar.LENGTH_SHORT).show() } },
-                                { toDelete -> act.deleteWithUndo(toDelete) }
-                            ).show(schedule)
-                        }
-                    },
-                    onDeleteClick = { schedule ->
-                        (activity as? MainActivity)?.deleteWithUndo(schedule)
-                    }
-                )
+                adapter.submitList(filtered)
             }
         }
     }
 }
-

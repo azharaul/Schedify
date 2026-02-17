@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
         }.attach()
 
         fabAddSchedule.setOnClickListener {
+            val currentDay = getCurrentSelectedDay()
             AddScheduleDialog(this, onSave = { schedule ->
                 if (schedule.id == 0) {
                     viewModel.insertSchedule(schedule)
@@ -83,8 +84,11 @@ class MainActivity : AppCompatActivity() {
                     viewModel.updateSchedule(schedule)
                     showSnackbar(getString(R.string.msg_updated))
                 }
-            }).show()
+            }).show(preselectedDay = currentDay)
         }
+
+        // Initialize data if empty
+        viewModel.initializeDefaultSchedules()
 
         // Observe data dari ViewModel
         lifecycleScope.launch {
@@ -112,8 +116,8 @@ class MainActivity : AppCompatActivity() {
 
         val snackbar = Snackbar.make(mainLayout, getString(R.string.msg_deleted), Snackbar.LENGTH_LONG)
         snackbar.setAction(getString(R.string.action_undo)) {
-            // re-insert schedule
-            viewModel.insertSchedule(schedule)
+            // re-insert schedule with original id
+            viewModel.restoreSchedule(schedule)
             showSnackbar(getString(R.string.msg_updated))
         }
         snackbar.show()

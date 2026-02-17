@@ -5,8 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class ScheduleViewModel(application: Application) : AndroidViewModel(application) {
@@ -15,14 +15,29 @@ class ScheduleViewModel(application: Application) : AndroidViewModel(application
     val allSchedules: Flow<List<Schedule>> = _schedules.asStateFlow()
 
     fun getSchedulesByDay(day: String): Flow<List<Schedule>> {
-        return MutableStateFlow(_schedules.value.filter { it.day == day }).asStateFlow()
+        return allSchedules.map { schedules ->
+            schedules.filter { it.day == day }
+        }
     }
 
     fun insertSchedule(schedule: Schedule) {
         viewModelScope.launch {
             val updatedList = _schedules.value.toMutableList()
-            val newId = if (updatedList.isEmpty()) 1 else updatedList.maxOf { it.id } + 1
+            val newId = if (schedule.id != 0) schedule.id else if (updatedList.isEmpty()) 1 else updatedList.maxOf { it.id } + 1
             updatedList.add(schedule.copy(id = newId))
+            _schedules.value = updatedList
+        }
+    }
+
+    /**
+     * Restore a schedule with its original id. Used for Undo so alarms/ids remain consistent.
+     */
+    fun restoreSchedule(schedule: Schedule) {
+        viewModelScope.launch {
+            val updatedList = _schedules.value.toMutableList()
+            // avoid duplicate id
+            if (updatedList.any { it.id == schedule.id }) return@launch
+            updatedList.add(schedule)
             _schedules.value = updatedList
         }
     }
