@@ -67,4 +67,4 @@ Contributions are welcome! If you find any bugs or have feature suggestions, ple
 Distributed under the MIT License. See `LICENSE` for more information.
 
 ---
-Developed with ❤️ by https://github.com/azharaul
+Developed with ❤️ by [Azharaul] (https://github.com/azharaul)
