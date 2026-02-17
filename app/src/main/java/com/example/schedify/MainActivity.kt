@@ -20,22 +20,24 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var mainLayout: androidx.coordinatorlayout.widget.CoordinatorLayout
-    private lateinit var rvSchedules: RecyclerView
+    lateinit var mainLayout: androidx.coordinatorlayout.widget.CoordinatorLayout
+    private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
     private lateinit var tvCountdown: TextView
     private lateinit var fabAddSchedule: FloatingActionButton
 
-    private val viewModel: ScheduleViewModel by viewModels()
+    val viewModel: ScheduleViewModel by viewModels()
     private var allSchedules = listOf<Schedule>()
     private var initialDaySelected = false
 
@@ -57,32 +59,29 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        rvSchedules = findViewById(R.id.rvSchedules)
+        viewPager = findViewById(R.id.viewPager)
         tabLayout = findViewById(R.id.tabLayout)
         tvCountdown = findViewById(R.id.tvCountdown)
         fabAddSchedule = findViewById(R.id.fabAddSchedule)
 
-        rvSchedules.layoutManager = LinearLayoutManager(this)
+        // Setup pager adapter
+        val pagerAdapter = DayPagerAdapter(this)
+        viewPager.adapter = pagerAdapter
+        viewPager.offscreenPageLimit = 1
 
-        // Initialize default schedules once
-        viewModel.initializeDefaultSchedules()
-
-        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
-            override fun onTabSelected(tab: TabLayout.Tab?) {
-                updateList(tab?.text.toString())
-            }
-            override fun onTabUnselected(tab: TabLayout.Tab?) {}
-            override fun onTabReselected(tab: TabLayout.Tab?) {}
-        })
+        // Attach TabLayout to ViewPager2
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = pagerAdapter.getDayAt(position)
+        }.attach()
 
         fabAddSchedule.setOnClickListener {
             AddScheduleDialog(this, onSave = { schedule ->
                 if (schedule.id == 0) {
                     viewModel.insertSchedule(schedule)
-                    Snackbar.make(mainLayout, getString(R.string.msg_saved), Snackbar.LENGTH_SHORT).show()
+                    showSnackbar(getString(R.string.msg_saved))
                 } else {
                     viewModel.updateSchedule(schedule)
-                    Snackbar.make(mainLayout, getString(R.string.msg_updated), Snackbar.LENGTH_SHORT).show()
+                    showSnackbar(getString(R.string.msg_updated))
                 }
             }).show()
         }
@@ -100,13 +99,6 @@ class MainActivity : AppCompatActivity() {
                 if (!initialDaySelected) {
                     selectCurrentDay()
                     initialDaySelected = true
-                    // ensure list reflects selected tab after selection
-                    val sel = tabLayout.getTabAt(tabLayout.selectedTabPosition)?.text?.toString()
-                    updateList(sel ?: getCurrentDayName(Calendar.getInstance().get(Calendar.DAY_OF_WEEK)))
-                } else {
-                    // refresh currently visible tab without forcing a change
-                    val currentTab = tabLayout.getTabAt(tabLayout.selectedTabPosition)?.text?.toString()
-                    updateList(currentTab ?: getCurrentDayName(Calendar.getInstance().get(Calendar.DAY_OF_WEEK)))
                 }
             }
         }
@@ -114,7 +106,7 @@ class MainActivity : AppCompatActivity() {
         checkNotificationPermission()
     }
 
-    private fun deleteWithUndo(schedule: Schedule) {
+    fun deleteWithUndo(schedule: Schedule) {
         // remove immediately
         viewModel.deleteSchedule(schedule)
 
@@ -122,9 +114,13 @@ class MainActivity : AppCompatActivity() {
         snackbar.setAction(getString(R.string.action_undo)) {
             // re-insert schedule
             viewModel.insertSchedule(schedule)
-            Snackbar.make(mainLayout, getString(R.string.msg_updated), Snackbar.LENGTH_SHORT).show()
+            showSnackbar(getString(R.string.msg_updated))
         }
         snackbar.show()
+    }
+
+    fun showSnackbar(message: String) {
+        Snackbar.make(mainLayout, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun checkNotificationPermission() {
@@ -175,8 +171,8 @@ class MainActivity : AppCompatActivity() {
                         putExtra("time", schedule.time)
                         putExtra("minutes_before", reminderMinute)
                     }
-                    
-                    val requestCode = schedule.id * 100 + reminderMinute 
+
+                    val requestCode = schedule.id * 100 + reminderMinute
 
                     val pendingIntent = PendingIntent.getBroadcast(
                         this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
@@ -191,12 +187,12 @@ class MainActivity : AppCompatActivity() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         allSchedules.forEach { schedule ->
             listOf(30, 20, 10).forEach { reminderMinute ->
-                 val requestCode = schedule.id * 100 + reminderMinute
-                 val intent = Intent(this, ScheduleReminderReceiver::class.java)
-                 val pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
-                 if (pendingIntent != null) {
+                val requestCode = schedule.id * 100 + reminderMinute
+                val intent = Intent(this, ScheduleReminderReceiver::class.java)
+                val pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
+                if (pendingIntent != null) {
                     alarmManager.cancel(pendingIntent)
-                 }
+                }
             }
         }
     }
@@ -231,7 +227,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
     private fun getCurrentDayName(dayOfWeek: Int): String {
         return when (dayOfWeek) {
             Calendar.MONDAY -> "Senin"
@@ -252,30 +247,17 @@ class MainActivity : AppCompatActivity() {
             val tab = tabLayout.getTabAt(i)
             if (tab?.text == currentDayName) {
                 tab.select()
+                // also move viewPager
+                viewPager.setCurrentItem(i, false)
                 break
             }
         }
     }
 
-    private fun updateList(day: String) {
-        val filteredSchedules = allSchedules.filter { it.day == day }
-        rvSchedules.adapter = ScheduleAdapter(
-            filteredSchedules,
-            onEditClick = { schedule ->
-                AddScheduleDialog(this,
-                    { updatedSchedule ->
-                        viewModel.updateSchedule(updatedSchedule)
-                        Snackbar.make(mainLayout, getString(R.string.msg_updated), Snackbar.LENGTH_SHORT).show()
-                    },
-                    { toDelete ->
-                        // delegate delete to activity to keep Undo behavior consistent
-                        deleteWithUndo(toDelete)
-                    }
-                ).show(schedule)
-            },
-            onDeleteClick = { schedule ->
-                deleteWithUndo(schedule)
-            }
-        )
+    private fun getCurrentSelectedDay(): String {
+        val pos = viewPager.currentItem
+        val adapter = viewPager.adapter as? DayPagerAdapter
+        return adapter?.getDayAt(pos) ?: getCurrentDayName(Calendar.getInstance().get(Calendar.DAY_OF_WEEK))
     }
+
 }

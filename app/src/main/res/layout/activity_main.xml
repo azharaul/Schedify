@@ -56,27 +56,16 @@
                 app:tabSelectedTextColor="#FFFFFF"
                 app:tabTextColor="#9AA0A6"
                 app:tabRippleColor="@android:color/transparent"
-                app:tabIndicatorAnimationMode="elastic">
-
-                <com.google.android.material.tabs.TabItem android:text="Senin" />
-                <com.google.android.material.tabs.TabItem android:text="Selasa" />
-                <com.google.android.material.tabs.TabItem android:text="Rabu" />
-                <com.google.android.material.tabs.TabItem android:text="Kamis" />
-                <com.google.android.material.tabs.TabItem android:text="Jumat" />
-                <com.google.android.material.tabs.TabItem android:text="Sabtu" />
-                <com.google.android.material.tabs.TabItem android:text="Minggu" />
-            </com.google.android.material.tabs.TabLayout>
+                app:tabIndicatorAnimationMode="elastic" />
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvSchedules"
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        tools:listitem="@layout/item_schedule" />
+        android:paddingBottom="80dp" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddSchedule"
