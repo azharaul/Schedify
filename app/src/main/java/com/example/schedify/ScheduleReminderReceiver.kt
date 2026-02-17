@@ -12,6 +12,7 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val title = intent.getStringExtra("title") ?: "Jadwal Kuliah"
         val time = intent.getStringExtra("time") ?: ""
+        val minutesBefore = intent.getIntExtra("minutes_before", 0)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "schedify_reminder"
@@ -21,14 +22,21 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
             notificationManager.createNotificationChannel(channel)
         }
 
+        val notificationText = if (minutesBefore > 0) {
+            "Kuliah $title dimulai dalam $minutesBefore menit! ($time)"
+        } else {
+            "Sekarang waktunya $title! ($time)"
+        }
+
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
-            .setContentTitle("Waktunya Kuliah!")
-            .setContentText("Sekarang: $title ($time)")
+            .setContentTitle("Pengingat Schedify")
+            .setContentText(notificationText)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .build()
 
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        val notificationId = intent.getIntExtra("minutes_before", 0)
+        notificationManager.notify(notificationId, notification)
     }
 }
