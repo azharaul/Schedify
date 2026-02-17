@@ -1,7 +1,11 @@
 package com.example.schedify
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity(tableName = "schedules")
 data class Schedule(
-    val id: Int = 0,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val title: String,
     val time: String,
     val day: String,
