@@ -9,15 +9,20 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,20 +31,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rvSchedules: RecyclerView
     private lateinit var tabLayout: TabLayout
     private lateinit var tvCountdown: TextView
+    private lateinit var fabAddSchedule: FloatingActionButton
 
-    private val allSchedules = listOf(
-        Schedule(1, "Pemrosesan Data Terdistribusi", "07:55 – 10:35", "Senin"),
-        Schedule(2, "Pemrograman Berbasis Platform", "13:00 – 16:35", "Senin"),
-        Schedule(3, "Riset dan Pengembangan", "07:55 – 11:30", "Selasa"),
-        Schedule(4, "Kecerdasan Buatan", "13:00 – 16:35", "Selasa"),
-        Schedule(5, "Pemrosesan Data Terdistribusi", "07:55 – 10:30", "Rabu"),
-        Schedule(6, "Dasar-Dasar Jaringan", "13:00 – 14:40", "Rabu"),
-        Schedule(7, "Bahasa Inggris 4", "08:00 – 09:40", "Kamis"),
-        Schedule(8, "Agama 4", "10:40 – 11:30", "Kamis"),
-        Schedule(9, "Dasar-Dasar Jaringan", "13:00 – 14:40", "Kamis"),
-        Schedule(10, "Pemrograman Berorientasi Objek", "14:50 – 15:40", "Kamis"),
-        Schedule(11, "Kewirausahaan Teknologi Informasi", "13:00 – 14:45", "Jumat")
-    )
+    private val viewModel: ScheduleViewModel by viewModels()
+    private var allSchedules = listOf<Schedule>()
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -62,8 +57,12 @@ class MainActivity : AppCompatActivity() {
         rvSchedules = findViewById(R.id.rvSchedules)
         tabLayout = findViewById(R.id.tabLayout)
         tvCountdown = findViewById(R.id.tvCountdown)
+        fabAddSchedule = findViewById(R.id.fabAddSchedule)
 
         rvSchedules.layoutManager = LinearLayoutManager(this)
+
+        // Initialize default schedules once
+        viewModel.initializeDefaultSchedules()
 
         tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
@@ -73,8 +72,27 @@ class MainActivity : AppCompatActivity() {
             override fun onTabReselected(tab: TabLayout.Tab?) {}
         })
 
-        selectCurrentDay()
-        updateCountdown()
+        fabAddSchedule.setOnClickListener {
+            AddScheduleDialog(this) { schedule ->
+                if (schedule.id == 0) {
+                    viewModel.insertSchedule(schedule)
+                } else {
+                    viewModel.updateSchedule(schedule)
+                }
+                Toast.makeText(this, "Jadwal berhasil disimpan", Toast.LENGTH_SHORT).show()
+            }.show()
+        }
+
+        // Observe data dari ViewModel
+        lifecycleScope.launch {
+            viewModel.allSchedules.collect { schedules ->
+                allSchedules = schedules
+                selectCurrentDay()
+                updateCountdown()
+                scheduleAllReminders()
+            }
+        }
+
         checkNotificationPermission()
     }
 
@@ -197,6 +215,18 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateList(day: String) {
         val filteredSchedules = allSchedules.filter { it.day == day }
-        rvSchedules.adapter = ScheduleAdapter(filteredSchedules)
+        rvSchedules.adapter = ScheduleAdapter(
+            filteredSchedules,
+            onEditClick = { schedule ->
+                AddScheduleDialog(this) { updatedSchedule ->
+                    viewModel.updateSchedule(updatedSchedule)
+                    Toast.makeText(this, "Jadwal berhasil diupdate", Toast.LENGTH_SHORT).show()
+                }.show(schedule)
+            },
+            onDeleteClick = { schedule ->
+                viewModel.deleteSchedule(schedule)
+                Toast.makeText(this, "Jadwal berhasil dihapus", Toast.LENGTH_SHORT).show()
+            }
+        )
     }
 }

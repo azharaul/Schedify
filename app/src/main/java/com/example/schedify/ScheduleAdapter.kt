@@ -10,7 +10,11 @@ import com.google.android.material.card.MaterialCardView
 import java.text.SimpleDateFormat
 import java.util.*
 
-class ScheduleAdapter(private val schedules: List<Schedule>) :
+class ScheduleAdapter(
+    private val schedules: List<Schedule>,
+    private val onEditClick: (Schedule) -> Unit = {},
+    private val onDeleteClick: (Schedule) -> Unit = {}
+) :
     RecyclerView.Adapter<ScheduleAdapter.ScheduleViewHolder>() {
 
     class ScheduleViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -31,7 +35,7 @@ class ScheduleAdapter(private val schedules: List<Schedule>) :
         holder.tvTitle.text = schedule.title
         holder.tvTime.text = schedule.time
 
-        // Palet warna yang lebih ramah buta warna
+        // ...existing code...
         val color = when (schedule.day) {
             "Senin" -> "#0072B2"
             "Selasa" -> "#E69F00"
@@ -42,27 +46,55 @@ class ScheduleAdapter(private val schedules: List<Schedule>) :
         }
         holder.viewColorTag.setBackgroundColor(Color.parseColor(color))
 
-        // Cek apakah jadwal sedang berlangsung
+        // ...existing code...
         if (isCurrentSchedule(schedule)) {
-            // Beri efek menyala (stroke lebih tebal dan warna berbeda)
             holder.cardView.strokeColor = Color.parseColor(color)
             holder.cardView.strokeWidth = 6
             holder.cardView.cardElevation = 12f
         } else {
-            // Reset ke tampilan normal
             holder.cardView.strokeColor = Color.parseColor("#2C2C2C")
             holder.cardView.strokeWidth = 2
             holder.cardView.cardElevation = 0f
         }
+
+        // Long click listener untuk edit/delete
+        holder.cardView.setOnLongClickListener {
+            showScheduleMenu(holder.itemView, schedule, onEditClick, onDeleteClick)
+            true
+        }
     }
 
+    private fun showScheduleMenu(
+        view: View,
+        schedule: Schedule,
+        onEditClick: (Schedule) -> Unit,
+        onDeleteClick: (Schedule) -> Unit
+    ) {
+        val popup = android.widget.PopupMenu(view.context, view)
+        popup.menuInflater.inflate(R.menu.schedule_menu, popup.menu)
+        popup.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_edit -> {
+                    onEditClick(schedule)
+                    true
+                }
+                R.id.action_delete -> {
+                    onDeleteClick(schedule)
+                    true
+                }
+                else -> false
+            }
+        }
+        popup.show()
+    }
+
+    // ...existing code...
     private fun isCurrentSchedule(schedule: Schedule): Boolean {
         try {
             val calendar = Calendar.getInstance()
             val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
             val currentTimeStr = sdf.format(calendar.time)
             
-            // Ambil nama hari sekarang (sesuai format data kita)
             val currentDayName = when (calendar.get(Calendar.DAY_OF_WEEK)) {
                 Calendar.MONDAY -> "Senin"
                 Calendar.TUESDAY -> "Selasa"
@@ -76,7 +108,6 @@ class ScheduleAdapter(private val schedules: List<Schedule>) :
 
             if (schedule.day != currentDayName) return false
 
-            // Parsing waktu: "07:55 – 10:35" -> start: 07:55, end: 10:35
             val times = schedule.time.split(" – ")
             if (times.size < 2) return false
             
