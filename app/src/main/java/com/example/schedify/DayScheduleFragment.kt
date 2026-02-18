@@ -5,12 +5,12 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 class DayScheduleFragment : Fragment() {
@@ -18,6 +18,7 @@ class DayScheduleFragment : Fragment() {
     private val viewModel: ScheduleViewModel by activityViewModels()
     private lateinit var dayName: String
     private lateinit var rvDaySchedules: RecyclerView
+    private lateinit var emptyStateLayout: LinearLayout
     private lateinit var adapter: ScheduleListAdapter
 
     companion object {
@@ -42,6 +43,8 @@ class DayScheduleFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         val v = inflater.inflate(R.layout.fragment_day_schedule, container, false)
         rvDaySchedules = v.findViewById(R.id.rvDaySchedules)
+        emptyStateLayout = v.findViewById(R.id.emptyStateLayout)
+        
         rvDaySchedules.layoutManager = LinearLayoutManager(requireContext())
         adapter = ScheduleListAdapter(
             onEditClick = { schedule ->
@@ -68,6 +71,15 @@ class DayScheduleFragment : Fragment() {
             viewModel.allSchedules.collect { schedules ->
                 val filtered = schedules.filter { it.day == dayName }
                 adapter.submitList(filtered)
+                
+                // Toggle empty state
+                if (filtered.isEmpty()) {
+                    rvDaySchedules.visibility = View.GONE
+                    emptyStateLayout.visibility = View.VISIBLE
+                } else {
+                    rvDaySchedules.visibility = View.VISIBLE
+                    emptyStateLayout.visibility = View.GONE
+                }
             }
         }
     }

@@ -12,4 +12,30 @@
         android:paddingBottom="80dp"
         tools:listitem="@layout/item_schedule" />
 
+    <LinearLayout
+        android:id="@+id/emptyStateLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_relax"
+            android:contentDescription="@string/empty_day_message" />
+
+        <TextView
+            android:id="@+id/tvEmptyMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/empty_day_message"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1" />
+
+    </LinearLayout>
+
 </FrameLayout>

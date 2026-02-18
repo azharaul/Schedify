@@ -26,6 +26,7 @@
     <string name="next_activity">Kegiatan berikutnya: %1$s (%2$s)</string>
     <string name="ongoing_activity">Kegiatan sedang berlangsung: %1$s</string>
     <string name="no_more_activities">Tidak ada kegiatan lagi hari ini</string>
+    <string name="empty_day_message">Hari ini santai dulu, tidak ada jadwal!</string>
 
     <!-- Delete confirmation -->
     <string name="confirm_delete_title">Hapus kegiatan?</string>
