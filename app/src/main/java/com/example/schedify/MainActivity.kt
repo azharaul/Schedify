@@ -25,6 +25,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -107,6 +109,14 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // Periodic update for countdown/ongoing activity
+        lifecycleScope.launch {
+            while (isActive) {
+                updateCountdown()
+                delay(60000) // update every minute
+            }
+        }
+
         checkNotificationPermission()
     }
 
@@ -144,53 +154,80 @@ class MainActivity : AppCompatActivity() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (!alarmManager.canScheduleExactAlarms()) {
+                // Request permission if not granted
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM)
+                startActivity(intent)
                 return
             }
         }
 
-        val calendar = Calendar.getInstance()
-        val currentDayName = getCurrentDayName(calendar.get(Calendar.DAY_OF_WEEK))
-
         cancelAllReminders()
 
-        allSchedules.filter { it.day == currentDayName }.forEach { schedule ->
-            val startTime = schedule.time.substringBefore(" –")
-            val hour = startTime.substringBefore(":").toInt()
-            val minute = startTime.substringAfter(":").toInt()
+        allSchedules.forEach { schedule ->
+            val startTime = schedule.time.substringBefore(" –").trim()
+            val parts = startTime.split(":")
+            if (parts.size != 2) return@forEach
+            val hour = parts[0].toIntOrNull() ?: return@forEach
+            val minute = parts[1].toIntOrNull() ?: return@forEach
 
-            val baseCal = Calendar.getInstance().apply {
-                set(Calendar.HOUR_OF_DAY, hour)
-                set(Calendar.MINUTE, minute)
-                set(Calendar.SECOND, 0)
-            }
+            val scheduleDayOfWeek = getDayOfWeek(schedule.day)
+            if (scheduleDayOfWeek == -1) return@forEach
 
-            val reminderTimes = listOf(30, 20, 10)
+            val reminderTimes = listOf(30, 20, 10, 0)
             reminderTimes.forEach { reminderMinute ->
-                val targetCal = baseCal.clone() as Calendar
-                targetCal.add(Calendar.MINUTE, -reminderMinute)
+                val targetCal = Calendar.getInstance().apply {
+                    set(Calendar.DAY_OF_WEEK, scheduleDayOfWeek)
+                    set(Calendar.HOUR_OF_DAY, hour)
+                    set(Calendar.MINUTE, minute)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                    add(Calendar.MINUTE, -reminderMinute)
 
-                if (targetCal.timeInMillis > System.currentTimeMillis()) {
-                    val intent = Intent(this, ScheduleReminderReceiver::class.java).apply {
-                        putExtra("title", schedule.title)
-                        putExtra("time", schedule.time)
-                        putExtra("minutes_before", reminderMinute)
+                    // If the time has already passed this week, schedule for next week
+                    if (timeInMillis <= System.currentTimeMillis()) {
+                        add(Calendar.WEEK_OF_YEAR, 1)
                     }
+                }
 
-                    val requestCode = schedule.id * 100 + reminderMinute
+                val intent = Intent(this, ScheduleReminderReceiver::class.java).apply {
+                    putExtra("title", schedule.title)
+                    putExtra("time", schedule.time)
+                    putExtra("minutes_before", reminderMinute)
+                    putExtra("schedule_id", schedule.id)
+                }
 
-                    val pendingIntent = PendingIntent.getBroadcast(
-                        this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                    )
+                val requestCode = schedule.id * 100 + reminderMinute
+
+                val pendingIntent = PendingIntent.getBroadcast(
+                    this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
+                
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
+                } else {
+                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
                 }
             }
+        }
+    }
+
+    private fun getDayOfWeek(dayName: String): Int {
+        return when (dayName) {
+            "Senin" -> Calendar.MONDAY
+            "Selasa" -> Calendar.TUESDAY
+            "Rabu" -> Calendar.WEDNESDAY
+            "Kamis" -> Calendar.THURSDAY
+            "Jumat" -> Calendar.FRIDAY
+            "Sabtu" -> Calendar.SATURDAY
+            "Minggu" -> Calendar.SUNDAY
+            else -> -1
         }
     }
 
     private fun cancelAllReminders() {
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         allSchedules.forEach { schedule ->
-            listOf(30, 20, 10).forEach { reminderMinute ->
+            listOf(30, 20, 10, 0).forEach { reminderMinute ->
                 val requestCode = schedule.id * 100 + reminderMinute
                 val intent = Intent(this, ScheduleReminderReceiver::class.java)
                 val pendingIntent = PendingIntent.getBroadcast(this, requestCode, intent, PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
@@ -207,20 +244,35 @@ class MainActivity : AppCompatActivity() {
         val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
         val currentTimeStr = sdf.format(calendar.time)
 
-        val nextSchedule = allSchedules
-            .filter { it.day == currentDayName }
-            .filter { it.time.substringBefore(" –") > currentTimeStr }
-            .minByOrNull { it.time.substringBefore(" –") }
+        val schedulesToday = allSchedules.filter { it.day == currentDayName }
+
+        // Check for ongoing activity
+        val ongoingSchedule = schedulesToday.firstOrNull {
+            val start = it.time.substringBefore(" –").trim()
+            val end = it.time.substringAfter("– ").trim()
+            currentTimeStr >= start && currentTimeStr <= end
+        }
+
+        if (ongoingSchedule != null) {
+            val title = ongoingSchedule.title.trim()
+            val maxTitleLen = 30
+            val displayTitle = if (title.length > maxTitleLen) title.substring(0, maxTitleLen - 1).trimEnd() + "…" else title
+            tvCountdown.text = getString(R.string.ongoing_activity, displayTitle)
+            return
+        }
+
+        // Check for next activity
+        val nextSchedule = schedulesToday
+            .filter { it.time.substringBefore(" –").trim() > currentTimeStr }
+            .minByOrNull { it.time.substringBefore(" –").trim() }
 
         if (nextSchedule != null) {
-            // Try to extract a clean start time; fallback to whole time string if unexpected format
             val startRaw = try {
                 nextSchedule.time.substringBefore(" –").trim()
             } catch (e: Exception) {
                 nextSchedule.time.trim()
             }
 
-            // Truncate title to avoid overflow in the header (keep it readable)
             val title = nextSchedule.title.trim()
             val maxTitleLen = 30
             val displayTitle = if (title.length > maxTitleLen) title.substring(0, maxTitleLen - 1).trimEnd() + "…" else title
@@ -251,7 +303,6 @@ class MainActivity : AppCompatActivity() {
             val tab = tabLayout.getTabAt(i)
             if (tab?.text == currentDayName) {
                 tab.select()
-                // also move viewPager
                 viewPager.setCurrentItem(i, false)
                 break
             }

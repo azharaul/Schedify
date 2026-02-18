@@ -13,12 +13,15 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
         val title = intent.getStringExtra("title") ?: "Jadwal Kuliah"
         val time = intent.getStringExtra("time") ?: ""
         val minutesBefore = intent.getIntExtra("minutes_before", 0)
+        val scheduleId = intent.getIntExtra("schedule_id", 0)
 
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channelId = "schedify_reminder"
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Pengingat Jadwal", NotificationManager.IMPORTANCE_HIGH)
+            val channel = NotificationChannel(channelId, "Pengingat Jadwal", NotificationManager.IMPORTANCE_HIGH).apply {
+                description = "Channel untuk pengingat jadwal kuliah"
+            }
             notificationManager.createNotificationChannel(channel)
         }
 
@@ -36,7 +39,8 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .build()
 
-        val notificationId = intent.getIntExtra("minutes_before", 0)
+        // Unique ID for each schedule and each reminder interval
+        val notificationId = scheduleId * 100 + minutesBefore
         notificationManager.notify(notificationId, notification)
     }
 }
