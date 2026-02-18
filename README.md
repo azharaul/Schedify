@@ -20,14 +20,6 @@ Schedify is a modern, intuitive Android application designed to help students ma
 - **Background Tasks**: AlarmManager for precise scheduling
 - **Edge-to-edge**: Fully immersive UI experience
 
-## 📸 Screenshots
-
-| Home Screen | Add Schedule | Notifications |
-| :---: | :---: | :---: |
-| ![Home](https://via.placeholder.com/200x400?text=Home+Screen) | ![Add](https://via.placeholder.com/200x400?text=Add+Schedule) | ![Notification](https://via.placeholder.com/200x400?text=Notification) |
-
-*(Note: Replace these placeholders with actual screenshots from your app)*
-
 ## 🚀 Getting Started
 
 ### Prerequisites
