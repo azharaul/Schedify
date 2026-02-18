@@ -2,10 +2,10 @@ package com.example.schedify
 
 import android.app.TimePickerDialog
 import android.content.Context
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
+import android.view.View
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -17,6 +17,8 @@ class AddScheduleDialog(
     private val onSave: (Schedule) -> Unit,
     private val onDelete: (Schedule) -> Unit = {}
 ) {
+    private var selectedColor: Int = 0xFF2196F3.toInt() // Default blue
+
     fun show(scheduleToEdit: Schedule? = null, preselectedDay: String? = null) {
         val inflater = android.view.LayoutInflater.from(context)
         val view = inflater.inflate(R.layout.dialog_add_schedule, null)
@@ -26,6 +28,60 @@ class AddScheduleDialog(
         val etEndTime = view.findViewById<EditText>(R.id.etEndTime)
         val etLocation = view.findViewById<EditText>(R.id.etLocation)
         val spinnerDay = view.findViewById<Spinner>(R.id.spinnerDay)
+        val colorPickerContainer = view.findViewById<LinearLayout>(R.id.colorPickerContainer)
+
+        // Setup colors
+        val colors = listOf(
+            ContextCompat.getColor(context, R.color.blue_500),
+            ContextCompat.getColor(context, R.color.red_500),
+            ContextCompat.getColor(context, R.color.green_500),
+            ContextCompat.getColor(context, R.color.orange_500),
+            ContextCompat.getColor(context, R.color.purple_500),
+            ContextCompat.getColor(context, R.color.teal_500),
+            ContextCompat.getColor(context, R.color.pink_500)
+        )
+
+        selectedColor = scheduleToEdit?.color ?: colors[0]
+
+        // Function to create colored circle
+        fun createColorCircle(color: Int): View {
+            val size = (40 * context.resources.displayMetrics.density).toInt()
+            val margin = (8 * context.resources.displayMetrics.density).toInt()
+            
+            val frame = FrameLayout(context)
+            val params = LinearLayout.LayoutParams(size, size)
+            params.setMargins(margin, margin, margin, margin)
+            frame.layoutParams = params
+
+            val circle = View(context)
+            val circleParams = FrameLayout.LayoutParams(size, size)
+            circle.layoutParams = circleParams
+            
+            val shape = GradientDrawable()
+            shape.shape = GradientDrawable.OVAL
+            shape.setColor(color)
+            
+            // Add border if selected
+            if (color == selectedColor) {
+                shape.setStroke(6, Color.DKGRAY)
+            }
+            
+            circle.background = shape
+            frame.addView(circle)
+            
+            frame.setOnClickListener {
+                selectedColor = color
+                // Refresh all circles
+                colorPickerContainer.removeAllViews()
+                colors.forEach { c -> colorPickerContainer.addView(createColorCircle(c)) }
+            }
+            
+            return frame
+        }
+
+        colors.forEach { color ->
+            colorPickerContainer.addView(createColorCircle(color))
+        }
 
         // Setup spinner with full week
         val days = listOf("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
@@ -54,7 +110,6 @@ class AddScheduleDialog(
         // Jika edit, isi data yang ada
         if (scheduleToEdit != null) {
             etTitle.setText(scheduleToEdit.title)
-            // parsing time "HH:mm – HH:mm"
             val parts = scheduleToEdit.time.split(" – ")
             if (parts.size >= 2) {
                 etStartTime.setText(parts[0].trim())
@@ -65,7 +120,6 @@ class AddScheduleDialog(
             etLocation.setText(scheduleToEdit.location)
             spinnerDay.setSelection(days.indexOf(scheduleToEdit.day))
         } else {
-            // if creating new and preselectedDay provided, select it
             preselectedDay?.let { pd ->
                 val idx = days.indexOf(pd)
                 if (idx >= 0) spinnerDay.setSelection(idx)
@@ -105,22 +159,20 @@ class AddScheduleDialog(
                     title = title,
                     time = timeCombined,
                     day = day,
-                    location = location
+                    location = location,
+                    color = selectedColor
                 )
                 onSave(newSchedule)
 
             }
             .setNegativeButton(context.getString(R.string.btn_cancel), null)
 
-        // Show Delete button (neutral) only if editing existing schedule
         if (scheduleToEdit != null) {
             builder.setNeutralButton(context.getString(R.string.btn_delete)) { dialog, _ ->
-                // show confirmation
                 AlertDialog.Builder(context)
                     .setTitle(context.getString(R.string.confirm_delete_title))
                     .setMessage(context.getString(R.string.confirm_delete_message))
                     .setPositiveButton(context.getString(R.string.btn_delete)) { _, _ ->
-                        // perform delete via callback
                         onDelete(scheduleToEdit)
                     }
                     .setNegativeButton(context.getString(R.string.btn_cancel), null)
@@ -130,15 +182,12 @@ class AddScheduleDialog(
 
         val dialog = builder.show()
 
-        // If delete button exists, color it with error color to emphasize destructive action
         if (scheduleToEdit != null) {
             val deleteBtn = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
             try {
-                val color = ContextCompat.getColor(context, com.google.android.material.R.color.m3_ref_palette_error50) // fallback to material error
+                val color = ContextCompat.getColor(context, com.google.android.material.R.color.m3_ref_palette_error50)
                 deleteBtn.setTextColor(color)
-            } catch (e: Exception) {
-                // ignore if color not found
-            }
+            } catch (e: Exception) {}
         }
     }
 }

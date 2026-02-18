@@ -9,5 +9,6 @@ data class Schedule(
     val title: String,
     val time: String,
     val day: String,
-    val location: String = ""
+    val location: String = "",
+    val color: Int = 0xFF2196F3.toInt() // Default Blue
 )

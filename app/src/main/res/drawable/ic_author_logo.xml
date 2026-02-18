@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="288dp"
+    android:height="288dp"
+    android:viewportWidth="288"
+    android:viewportHeight="288">
+
+    <!-- Background Circle for a more professional look -->
+    <path
+        android:fillColor="#2C2C2C"
+        android:pathData="M144,144m-120,0a120,120 0,1 1,240 0a120,120 0,1 1,-240 0" />
+
+    <!-- Stylized 'S' for Schedify -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M144,80c-25,0 -45,15 -45,35s20,35 45,35 45,15 45,35 -20,35 -45,35 -45,-15 -45,-35h15c0,15 15,20 30,20s30,-5 30,-20 -15,-20 -30,-20 -45,-15 -45,-35 20,-35 45,-35 45,15 45,35h-15c0,-15 -15,-20 -30,-20z" />
+
+    <!-- "Schedify" Text Approximation -->
+    <group android:translateX="85" android:translateY="210">
+        <path android:fillColor="#E0E0E0" android:pathData="M0,10 L120,10" /> <!-- Decorative line -->
+    </group>
+
+</vector>

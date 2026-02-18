@@ -17,14 +17,13 @@
         android:orientation="horizontal"
         android:padding="16dp">
 
-        <!-- Bulatan Indikator Warna Modern -->
         <View
             android:id="@+id/viewColorTag"
             android:layout_width="12dp"
             android:layout_height="12dp"
             android:layout_marginTop="6dp"
             android:layout_marginEnd="16dp"
-            android:background="@android:color/holo_blue_light" />
+            android:background="@drawable/circle_shape" />
 
         <LinearLayout
             android:layout_width="0dp"

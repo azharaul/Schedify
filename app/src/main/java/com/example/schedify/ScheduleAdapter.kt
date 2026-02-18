@@ -48,18 +48,11 @@ class ScheduleListAdapter(
         }
         holder.tvTime.text = schedule.time
 
-        val color = when (schedule.day) {
-            "Senin" -> "#0072B2"
-            "Selasa" -> "#E69F00"
-            "Rabu" -> "#009E73"
-            "Kamis" -> "#CC79A7"
-            "Jumat" -> "#D55E00"
-            else -> "#56B4E9"
-        }
-        holder.viewColorTag.setBackgroundColor(Color.parseColor(color))
+        // Use the saved color instead of day-based color
+        holder.viewColorTag.setBackgroundColor(schedule.color)
 
         if (isCurrentSchedule(schedule)) {
-            holder.cardView.strokeColor = Color.parseColor(color)
+            holder.cardView.strokeColor = schedule.color
             holder.cardView.strokeWidth = 6
             holder.cardView.cardElevation = 12f
         } else {

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="40dp"
+    android:viewportWidth="200"
+    android:viewportHeight="40">
+
+    <!-- "by Azharaul" branding text -->
+    <!-- Simplified clean typography paths -->
+    <group android:translateX="50" android:translateY="10">
+        <!-- 'b' -->
+        <path android:fillColor="#80FFFFFF" android:pathData="M10,10 L10,25 M10,18 Q15,18 15,22 Q15,25 10,25" />
+        <!-- 'y' -->
+        <path android:fillColor="#80FFFFFF" android:pathData="M20,18 L24,25 M28,18 L24,25 L22,30" />
+
+        <!-- 'A' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M40,25 L45,10 L50,25 M42,20 L48,20" />
+        <!-- 'z' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M55,12 L65,12 L55,25 L65,25" />
+        <!-- 'h' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M70,10 L70,25 M70,18 Q75,18 75,25" />
+        <!-- 'a' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M85,25 Q80,25 80,21 Q80,18 85,18 L85,25 M85,18 L85,25" />
+        <!-- 'r' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M95,18 L95,25 M95,20 Q100,18 100,20" />
+        <!-- 'a' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M110,25 Q105,25 105,21 Q105,18 110,18 L110,25 M110,18 L110,25" />
+        <!-- 'u' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M120,18 L120,22 Q120,25 125,25 L125,18" />
+        <!-- 'l' -->
+        <path android:fillColor="#B3FFFFFF" android:pathData="M135,10 L135,25" />
+    </group>
+</vector>

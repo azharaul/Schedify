@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation("androidx.fragment:fragment-ktx:1.6.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation(libs.androidx.core.splashscreen)
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

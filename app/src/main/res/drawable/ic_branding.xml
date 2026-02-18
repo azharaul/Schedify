@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="40dp"
+    android:viewportWidth="200"
+    android:viewportHeight="40">
+
+    <!-- Subtle "by Azharaul" minimalist vector text approximation -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M70,25 L73,15 L76,25 M72,21 L74,21" /> <!-- A -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M80,15 L85,25 L90,15" /> <!-- V-ish -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M95,15 L95,25 L102,25" /> <!-- L-ish -->
+
+    <!-- More simply, a thin line with "by Azharaul" vibe -->
+    <path
+        android:fillColor="#40FFFFFF"
+        android:pathData="M60,20 L140,20" />
+
+    <path
+        android:fillColor="#B3FFFFFF"
+        android:pathData="M85,28 L115,28" />
+
+</vector>
