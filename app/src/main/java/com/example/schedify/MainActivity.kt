@@ -97,9 +97,6 @@ class MainActivity : AppCompatActivity() {
             }).show(preselectedDay = currentDay)
         }
 
-        // Initialize data if empty
-        viewModel.initializeDefaultSchedules()
-
         // Observe data dari ViewModel
         lifecycleScope.launch {
             viewModel.allSchedules.collect { schedules ->
