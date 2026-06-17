@@ -6,8 +6,10 @@ import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.view.View
 import android.widget.*
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.util.*
 import java.text.SimpleDateFormat
@@ -17,61 +19,81 @@ class AddScheduleDialog(
     private val onSave: (Schedule) -> Unit,
     private val onDelete: (Schedule) -> Unit = {}
 ) {
-    private var selectedColor: Int = 0xFF2196F3.toInt() // Default blue
+    private var selectedColor: Int = 0xFF2563EB.toInt() // Default brand blue
 
     fun show(scheduleToEdit: Schedule? = null, preselectedDay: String? = null) {
-        val inflater = android.view.LayoutInflater.from(context)
-        val view = inflater.inflate(R.layout.dialog_add_schedule, null)
+        val dialog = BottomSheetDialog(context, R.style.AppBottomSheetDialogTheme)
+        val view = View.inflate(context, R.layout.dialog_add_schedule, null)
+        dialog.setContentView(view)
 
-        val etTitle = view.findViewById<EditText>(R.id.etTitle)
-        val etStartTime = view.findViewById<EditText>(R.id.etStartTime)
-        val etEndTime = view.findViewById<EditText>(R.id.etEndTime)
-        val etLocation = view.findViewById<EditText>(R.id.etLocation)
-        val spinnerDay = view.findViewById<Spinner>(R.id.spinnerDay)
+        val tvDialogTitle = view.findViewById<TextView>(R.id.tvDialogTitle)
+        val headerDivider = view.findViewById<View>(R.id.headerDivider)
+        val etTitle = view.findViewById<TextInputEditText>(R.id.etTitle)
+        val etStartTime = view.findViewById<TextInputEditText>(R.id.etStartTime)
+        val etEndTime = view.findViewById<TextInputEditText>(R.id.etEndTime)
+        val etLocation = view.findViewById<TextInputEditText>(R.id.etLocation)
+        val acDay = view.findViewById<AutoCompleteTextView>(R.id.acDay)
         val colorPickerContainer = view.findViewById<LinearLayout>(R.id.colorPickerContainer)
+        val btnDelete = view.findViewById<MaterialButton>(R.id.btnDelete)
+        val btnCancel = view.findViewById<MaterialButton>(R.id.btnCancel)
+        val btnSave = view.findViewById<MaterialButton>(R.id.btnSave)
 
         // Setup colors
         val colors = listOf(
-            ContextCompat.getColor(context, R.color.blue_500),
-            ContextCompat.getColor(context, R.color.red_500),
-            ContextCompat.getColor(context, R.color.green_500),
-            ContextCompat.getColor(context, R.color.orange_500),
-            ContextCompat.getColor(context, R.color.purple_500),
-            ContextCompat.getColor(context, R.color.teal_500),
-            ContextCompat.getColor(context, R.color.pink_500)
+            0xFF2563EB.toInt(), // Brand Blue
+            0xFF00C9B8.toInt(), // Brand Teal
+            0xFFEF4444.toInt(), // Red
+            0xFF10B981.toInt(), // Green
+            0xFFF59E0B.toInt(), // Amber
+            0xFF8B5CF6.toInt(), // Violet
+            0xFFEC4899.toInt()  // Pink
         )
 
         selectedColor = scheduleToEdit?.color ?: colors[0]
 
-        // Function to create colored circle
         fun createColorCircle(color: Int): View {
-            val size = (40 * context.resources.displayMetrics.density).toInt()
-            val margin = (8 * context.resources.displayMetrics.density).toInt()
+            val density = context.resources.displayMetrics.density
+            val size = (44 * density).toInt()
+            val margin = (6 * density).toInt()
             
             val frame = FrameLayout(context)
             val params = LinearLayout.LayoutParams(size, size)
-            params.setMargins(margin, margin, margin, margin)
+            params.setMargins(margin, 0, margin, 0)
             frame.layoutParams = params
 
             val circle = View(context)
-            val circleParams = FrameLayout.LayoutParams(size, size)
+            val isSelected = color == selectedColor
+            
+            val circleSize = if (isSelected) (44 * density).toInt() else (36 * density).toInt()
+            val circleParams = FrameLayout.LayoutParams(circleSize, circleSize)
+            circleParams.gravity = android.view.Gravity.CENTER
             circle.layoutParams = circleParams
             
             val shape = GradientDrawable()
             shape.shape = GradientDrawable.OVAL
             shape.setColor(color)
             
-            // Add border if selected
-            if (color == selectedColor) {
-                shape.setStroke(6, Color.DKGRAY)
+            if (isSelected) {
+                shape.setStroke((3 * density).toInt(), Color.WHITE)
             }
             
             circle.background = shape
             frame.addView(circle)
             
+            // Add checkmark if selected
+            if (isSelected) {
+                val check = ImageView(context)
+                val checkSize = (20 * density).toInt()
+                val checkParams = FrameLayout.LayoutParams(checkSize, checkSize)
+                checkParams.gravity = android.view.Gravity.CENTER
+                check.layoutParams = checkParams
+                check.setImageResource(android.R.drawable.checkbox_on_background)
+                check.setColorFilter(Color.WHITE)
+                frame.addView(check)
+            }
+            
             frame.setOnClickListener {
                 selectedColor = color
-                // Refresh all circles
                 colorPickerContainer.removeAllViews()
                 colors.forEach { c -> colorPickerContainer.addView(createColorCircle(c)) }
             }
@@ -79,15 +101,17 @@ class AddScheduleDialog(
             return frame
         }
 
-        colors.forEach { color ->
-            colorPickerContainer.addView(createColorCircle(color))
+        fun refreshColors() {
+            colorPickerContainer.removeAllViews()
+            colors.forEach { color ->
+                colorPickerContainer.addView(createColorCircle(color))
+            }
         }
+        refreshColors()
 
-        // Setup spinner with full week
         val days = listOf("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu")
-        val adapter = ArrayAdapter(context, android.R.layout.simple_spinner_item, days)
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        spinnerDay.adapter = adapter
+        val adapter = ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, days)
+        acDay.setAdapter(adapter)
 
         val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
 
@@ -107,87 +131,58 @@ class AddScheduleDialog(
         etStartTime.setOnClickListener { showTimePicker(etStartTime) }
         etEndTime.setOnClickListener { showTimePicker(etEndTime) }
 
-        // Jika edit, isi data yang ada
         if (scheduleToEdit != null) {
+            tvDialogTitle.text = context.getString(R.string.title_edit_schedule)
+            headerDivider.visibility = View.VISIBLE
             etTitle.setText(scheduleToEdit.title)
             val parts = scheduleToEdit.time.split(" – ")
             if (parts.size >= 2) {
                 etStartTime.setText(parts[0].trim())
                 etEndTime.setText(parts[1].trim())
-            } else {
-                etStartTime.setText(scheduleToEdit.time)
             }
             etLocation.setText(scheduleToEdit.location)
-            spinnerDay.setSelection(days.indexOf(scheduleToEdit.day))
+            acDay.setText(scheduleToEdit.day, false)
+            btnDelete.visibility = View.VISIBLE
         } else {
-            preselectedDay?.let { pd ->
-                val idx = days.indexOf(pd)
-                if (idx >= 0) spinnerDay.setSelection(idx)
-            }
+            preselectedDay?.let { pd -> acDay.setText(pd, false) }
         }
 
-        val builder = MaterialAlertDialogBuilder(context)
-            .setTitle(if (scheduleToEdit != null) context.getString(R.string.title_edit_schedule) else context.getString(R.string.title_add_schedule))
-            .setView(view)
-            .setPositiveButton(context.getString(R.string.btn_save)) { _, _ ->
-                val title = etTitle.text.toString().trim()
-                val start = etStartTime.text.toString().trim()
-                val end = etEndTime.text.toString().trim()
-                val location = etLocation.text.toString().trim()
-                val day = spinnerDay.selectedItem.toString()
+        btnCancel.setOnClickListener { dialog.dismiss() }
 
-                if (title.isEmpty() || start.isEmpty() || end.isEmpty()) {
-                    Toast.makeText(context, context.getString(R.string.msg_fill_fields), Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+        btnDelete.setOnClickListener {
+            MaterialAlertDialogBuilder(context)
+                .setTitle(context.getString(R.string.confirm_delete_title))
+                .setMessage(context.getString(R.string.confirm_delete_message))
+                .setPositiveButton(context.getString(R.string.btn_delete)) { _, _ ->
+                    onDelete(scheduleToEdit!!)
+                    dialog.dismiss()
                 }
-
-                try {
-                    val s = timeFormat.parse(start)!!
-                    val e = timeFormat.parse(end)!!
-                    if (s.after(e) || s == e) {
-                        Toast.makeText(context, context.getString(R.string.msg_time_invalid), Toast.LENGTH_SHORT).show()
-                        return@setPositiveButton
-                    }
-                } catch (ex: Exception) {
-                    Toast.makeText(context, context.getString(R.string.msg_time_format_invalid), Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
-                }
-
-                val timeCombined = "$start – $end"
-                val newSchedule = Schedule(
-                    id = scheduleToEdit?.id ?: 0,
-                    title = title,
-                    time = timeCombined,
-                    day = day,
-                    location = location,
-                    color = selectedColor
-                )
-                onSave(newSchedule)
-
-            }
-            .setNegativeButton(context.getString(R.string.btn_cancel), null)
-
-        if (scheduleToEdit != null) {
-            builder.setNeutralButton(context.getString(R.string.btn_delete)) { dialog, _ ->
-                AlertDialog.Builder(context)
-                    .setTitle(context.getString(R.string.confirm_delete_title))
-                    .setMessage(context.getString(R.string.confirm_delete_message))
-                    .setPositiveButton(context.getString(R.string.btn_delete)) { _, _ ->
-                        onDelete(scheduleToEdit)
-                    }
-                    .setNegativeButton(context.getString(R.string.btn_cancel), null)
-                    .show()
-            }
+                .setNegativeButton(context.getString(R.string.btn_cancel), null)
+                .show()
         }
 
-        val dialog = builder.show()
+        btnSave.setOnClickListener {
+            val title = etTitle.text.toString().trim()
+            val start = etStartTime.text.toString().trim()
+            val end = etEndTime.text.toString().trim()
+            val location = etLocation.text.toString().trim()
+            val day = acDay.text.toString()
 
-        if (scheduleToEdit != null) {
-            val deleteBtn = dialog.getButton(AlertDialog.BUTTON_NEUTRAL)
-            try {
-                val color = ContextCompat.getColor(context, com.google.android.material.R.color.m3_ref_palette_error50)
-                deleteBtn.setTextColor(color)
-            } catch (e: Exception) {}
+            if (title.isEmpty() || start.isEmpty() || end.isEmpty()) {
+                Toast.makeText(context, context.getString(R.string.msg_fill_fields), Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val timeCombined = "$start – $end"
+            onSave(Schedule(scheduleToEdit?.id ?: 0, title, timeCombined, day, location, selectedColor))
+            dialog.dismiss()
         }
+
+        // Apply gradient to Save button
+        val gd = GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, intArrayOf(0xFF2563EB.toInt(), 0xFF00C9B8.toInt()))
+        gd.cornerRadius = 12 * context.resources.displayMetrics.density
+        btnSave.background = gd
+
+        dialog.show()
     }
 }

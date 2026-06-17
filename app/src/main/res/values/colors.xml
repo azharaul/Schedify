@@ -1,5 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Brand -->
+    <color name="brand_blue">#2563EB</color>
+    <color name="brand_blue_dark">#1E40AF</color>
+    <color name="brand_teal">#00C9B8</color>
+    <color name="brand_gold">#F5A623</color>
+
+    <!-- Backgrounds -->
+    <color name="bg_page">#F8FAFF</color>         <!-- main screen bg, very light blue-white -->
+    <color name="bg_card">#FFFFFF</color>          <!-- card surface -->
+    <color name="bg_tab_container">#EEF2FF</color> <!-- tab row bg, soft indigo tint -->
+    <color name="bg_tab_active">#FFFFFF</color>    <!-- active tab pill -->
+    <color name="bg_badge">#EEF2FF</color>         <!-- duration badge bg -->
+    <color name="bg_dialog">#FFFFFF</color>        <!-- dialog/bottom sheet -->
+    <color name="bg_input">#F8FAFF</color>         <!-- text field bg -->
+
+    <!-- Text -->
+    <color name="text_title">#0F172A</color>       <!-- card titles, bold text -->
+    <color name="text_body">#334155</color>        <!-- regular body text -->
+    <color name="text_secondary">#64748B</color>   <!-- subtitle, hints -->
+    <color name="text_hint">#94A3B8</color>        <!-- placeholder text -->
+    <color name="text_tab_active">#1E40AF</color>  <!-- active tab text -->
+    <color name="text_tab_inactive">#94A3B8</color><!-- inactive tab text -->
+    <color name="text_badge">#2563EB</color>       <!-- badge text -->
+    <color name="text_time">#0EA5E9</color>        <!-- time range text (sky blue) -->
+
+    <!-- Borders & Dividers -->
+    <color name="border_card">#E2E8F0</color>      <!-- card border -->
+    <color name="border_input">#CBD5E1</color>     <!-- text field border -->
+    <color name="border_input_focus">#2563EB</color>
+
+    <!-- Section label -->
+    <color name="text_section_label">#94A3B8</color>
+
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="transparent">#00000000</color>
+
+    <!-- Retained for dynamic mapping if needed -->
     <color name="blue_500">#2196F3</color>
     <color name="red_500">#F44336</color>
     <color name="green_500">#4CAF50</color>
