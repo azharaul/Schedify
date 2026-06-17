@@ -6,6 +6,9 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.*
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.widget.TextView
@@ -33,7 +36,8 @@ class MainActivity : AppCompatActivity() {
     lateinit var mainLayout: androidx.coordinatorlayout.widget.CoordinatorLayout
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
-    private lateinit var tvCountdown: TextView
+    private lateinit var tvTitle: TextView
+    private lateinit var tvSubtitle: TextView
     private lateinit var fabAddSchedule: FloatingActionButton
 
     val viewModel: ScheduleViewModel by viewModels()
@@ -60,8 +64,11 @@ class MainActivity : AppCompatActivity() {
 
         viewPager = findViewById(R.id.viewPager)
         tabLayout = findViewById(R.id.tabLayout)
-        tvCountdown = findViewById(R.id.tvCountdown)
+        tvTitle = findViewById(R.id.tvTitle)
+        tvSubtitle = findViewById(R.id.tvCountdown)
         fabAddSchedule = findViewById(R.id.fabAddSchedule)
+
+        setupTitleGradient()
 
         // Setup pager adapter
         val pagerAdapter = DayPagerAdapter(this)
@@ -73,6 +80,8 @@ class MainActivity : AppCompatActivity() {
             tab.text = pagerAdapter.getDayAt(position)
         }.attach()
 
+        setupTabStyle()
+
         fabAddSchedule.setOnClickListener {
             val currentDay = getCurrentSelectedDay()
             AddScheduleDialog(this, onSave = { schedule ->
@@ -83,6 +92,8 @@ class MainActivity : AppCompatActivity() {
                     viewModel.updateSchedule(schedule)
                     showSnackbar(getString(R.string.msg_updated))
                 }
+            }, onDelete = { schedule ->
+                deleteWithUndo(schedule)
             }).show(preselectedDay = currentDay)
         }
 
@@ -94,8 +105,8 @@ class MainActivity : AppCompatActivity() {
             viewModel.allSchedules.collect { schedules ->
                 allSchedules = schedules
 
-                // Update countdown and reminders on every change
-                updateCountdown()
+                // Update subtitle and reminders on every change
+                updateSubtitle(allSchedules, getCurrentSelectedDay())
                 scheduleAllReminders()
 
                 // On first data arrival, auto-select the current day once
@@ -106,15 +117,62 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // Periodic update for countdown/ongoing activity
-        lifecycleScope.launch {
-            while (isActive) {
-                updateCountdown()
-                delay(60000) // update every minute
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                updateSubtitle(allSchedules, getCurrentSelectedDay())
             }
-        }
+        })
 
         checkNotificationPermission()
+    }
+
+    private fun setupTitleGradient() {
+        tvTitle.post {
+            val width = tvTitle.paint.measureText(tvTitle.text.toString())
+            
+            val shader = LinearGradient(
+                0f, 0f, width, 0f,
+                intArrayOf(
+                    Color.parseColor("#2563EB"),
+                    Color.parseColor("#00C9B8")
+                ),
+                null,
+                Shader.TileMode.CLAMP
+            )
+            tvTitle.paint.shader = shader
+            tvTitle.invalidate()
+        }
+    }
+
+    private fun updateSubtitle(scheduleList: List<Schedule>, selectedDay: String) {
+        val todaySchedules = scheduleList.filter { it.day == selectedDay }
+        
+        tvSubtitle.text = when {
+            todaySchedules.isEmpty() -> "Tidak ada jadwal hari ini"
+            todaySchedules.size == 1 -> "1 kegiatan hari ini"
+            else -> "${todaySchedules.size} kegiatan hari ini"
+        }
+    }
+
+    private fun setupTabStyle() {
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                tab?.view?.apply {
+                    val gd = GradientDrawable()
+                    gd.setColor(Color.WHITE)
+                    gd.cornerRadius = 20f * resources.displayMetrics.density
+                    background = gd
+                    elevation = 2f * resources.displayMetrics.density
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {
+                tab?.view?.background = null
+                tab?.view?.elevation = 0f
+            }
+
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
     }
 
     fun deleteWithUndo(schedule: Schedule) {
@@ -232,51 +290,6 @@ class MainActivity : AppCompatActivity() {
                     alarmManager.cancel(pendingIntent)
                 }
             }
-        }
-    }
-
-    private fun updateCountdown() {
-        val calendar = Calendar.getInstance()
-        val currentDayName = getCurrentDayName(calendar.get(Calendar.DAY_OF_WEEK))
-        val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-        val currentTimeStr = sdf.format(calendar.time)
-
-        val schedulesToday = allSchedules.filter { it.day == currentDayName }
-
-        // Check for ongoing activity
-        val ongoingSchedule = schedulesToday.firstOrNull {
-            val start = it.time.substringBefore(" –").trim()
-            val end = it.time.substringAfter("– ").trim()
-            currentTimeStr >= start && currentTimeStr <= end
-        }
-
-        if (ongoingSchedule != null) {
-            val title = ongoingSchedule.title.trim()
-            val maxTitleLen = 30
-            val displayTitle = if (title.length > maxTitleLen) title.substring(0, maxTitleLen - 1).trimEnd() + "…" else title
-            tvCountdown.text = getString(R.string.ongoing_activity, displayTitle)
-            return
-        }
-
-        // Check for next activity
-        val nextSchedule = schedulesToday
-            .filter { it.time.substringBefore(" –").trim() > currentTimeStr }
-            .minByOrNull { it.time.substringBefore(" –").trim() }
-
-        if (nextSchedule != null) {
-            val startRaw = try {
-                nextSchedule.time.substringBefore(" –").trim()
-            } catch (e: Exception) {
-                nextSchedule.time.trim()
-            }
-
-            val title = nextSchedule.title.trim()
-            val maxTitleLen = 30
-            val displayTitle = if (title.length > maxTitleLen) title.substring(0, maxTitleLen - 1).trimEnd() + "…" else title
-
-            tvCountdown.text = getString(R.string.next_activity, displayTitle, startRaw)
-        } else {
-            tvCountdown.text = getString(R.string.no_more_activities)
         }
     }
 

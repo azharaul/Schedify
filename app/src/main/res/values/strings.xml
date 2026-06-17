@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Schedify</string>
+    <string name="watermark_text">Schedify by Starving</string>
 
     <!-- Dialog / Input strings -->
     <string name="hint_activity_name">Nama Kegiatan</string>

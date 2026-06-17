@@ -1,66 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardView"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginHorizontal="20dp"
-    android:layout_marginVertical="10dp"
-    app:cardCornerRadius="24dp"
-    app:cardElevation="0dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardBackgroundColor="@color/bg_card"
     app:strokeWidth="1dp"
-    app:strokeColor="#2C2C2C"
-    app:cardBackgroundColor="#1E1E1E">
+    app:strokeColor="@color/border_card"
+    app:cardElevation="2dp">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
+        <!-- Left accent bar -->
         <View
             android:id="@+id/viewColorTag"
-            android:layout_width="12dp"
-            android:layout_height="12dp"
-            android:layout_marginTop="6dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/circle_shape" />
+            android:layout_width="4dp"
+            android:layout_height="0dp"
+            android:layout_marginVertical="12dp"
+            android:layout_marginStart="2dp"
+            android:background="@drawable/accent_bar_shape"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvScheduleTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:textColor="@color/text_title"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/durationBadge"
+            app:layout_constraintStart_toEndOf="@id/viewColorTag"
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <TextView
-                android:id="@+id/tvScheduleTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#E1E1E1"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:letterSpacing="-0.01" />
+        <LinearLayout
+            android:id="@+id/locationContainer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintStart_toStartOf="@id/tvScheduleTitle"
+            app:layout_constraintEnd_toEndOf="@id/tvScheduleTitle"
+            app:layout_constraintTop_toBottomOf="@id/tvScheduleTitle">
+
+            <ImageView
+                android:id="@+id/ivLocation"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@android:drawable/ic_menu_mylocation"
+                app:tint="@color/text_hint" />
 
             <TextView
                 android:id="@+id/tvScheduleLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textColor="#9AA0A6"
-                android:textSize="12sp"
-                android:visibility="gone" />
+                android:layout_marginStart="4dp"
+                android:textColor="@color/text_hint"
+                android:textSize="13sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tvScheduleTitle"
+            app:layout_constraintTop_toBottomOf="@id/locationContainer">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@android:drawable/ic_menu_recent_history"
+                app:tint="@color/brand_blue" />
 
             <TextView
                 android:id="@+id/tvScheduleTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="#9AA0A6"
-                android:textSize="14sp"
-                app:drawableStartCompat="@android:drawable/ic_menu_recent_history"
-                android:drawablePadding="8dp"
-                app:drawableTint="#9AA0A6" />
+                android:layout_marginStart="6dp"
+                android:textColor="@color/text_time"
+                android:textSize="13sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
-    </LinearLayout>
+        <FrameLayout
+            android:id="@+id/durationBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="16dp"
+            android:background="@drawable/duration_badge_bg"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvDuration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1h 30m"
+                android:textColor="@color/text_badge"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.graphics.ColorUtils
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -29,7 +30,7 @@ class ScheduleListAdapter(
         val tvLocation: TextView = view.findViewById(R.id.tvScheduleLocation)
         val tvTime: TextView = view.findViewById(R.id.tvScheduleTime)
         val viewColorTag: View = view.findViewById(R.id.viewColorTag)
-        val cardView: MaterialCardView = view as MaterialCardView
+        val cardView: MaterialCardView = view.findViewById(R.id.cardView)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ScheduleViewHolder {
@@ -48,16 +49,20 @@ class ScheduleListAdapter(
         }
         holder.tvTime.text = schedule.time
 
-        // Use the saved color instead of day-based color
-        holder.viewColorTag.setBackgroundColor(schedule.color)
+        // Set left accent bar color
+        val accentColor = schedule.color
+        holder.viewColorTag.setBackgroundColor(accentColor)
 
+        // Bonus Fix: Add subtle card glow matching accent bar color
         if (isCurrentSchedule(schedule)) {
-            holder.cardView.strokeColor = schedule.color
+            holder.cardView.strokeColor = accentColor
             holder.cardView.strokeWidth = 6
             holder.cardView.cardElevation = 12f
         } else {
-            holder.cardView.strokeColor = Color.parseColor("#2C2C2C")
-            holder.cardView.strokeWidth = 2
+            // Add subtle stroke matching accent color at low alpha
+            val strokeColor = ColorUtils.setAlphaComponent(accentColor, 40) // ~15% alpha
+            holder.cardView.strokeColor = strokeColor
+            holder.cardView.strokeWidth = 4
             holder.cardView.cardElevation = 0f
         }
 
