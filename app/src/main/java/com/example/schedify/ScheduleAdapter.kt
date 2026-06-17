@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.*;
 
 class ScheduleListAdapter(
     private val onEditClick: (Schedule) -> Unit = {},

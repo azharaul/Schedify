@@ -10,7 +10,7 @@ import androidx.core.app.NotificationCompat
 
 class ScheduleReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra("title") ?: "Jadwal Kuliah"
+        val title = intent.getStringExtra("title") ?: "Jadwal"
         val time = intent.getStringExtra("time") ?: ""
         val minutesBefore = intent.getIntExtra("minutes_before", 0)
         val scheduleId = intent.getIntExtra("schedule_id", 0)
@@ -20,13 +20,13 @@ class ScheduleReminderReceiver : BroadcastReceiver() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId, "Pengingat Jadwal", NotificationManager.IMPORTANCE_HIGH).apply {
-                description = "Channel untuk pengingat jadwal kuliah"
+                description = "Channel untuk pengingat jadwal"
             }
             notificationManager.createNotificationChannel(channel)
         }
 
         val notificationText = if (minutesBefore > 0) {
-            "Kuliah $title dimulai dalam $minutesBefore menit! ($time)"
+            "$title dimulai dalam $minutesBefore menit! ($time)"
         } else {
             "Sekarang waktunya $title! ($time)"
         }

@@ -217,6 +217,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         cancelAllReminders()
+        val now = System.currentTimeMillis()
 
         allSchedules.forEach { schedule ->
             val startTime = schedule.time.substringBefore(" –").trim()
@@ -238,29 +239,32 @@ class MainActivity : AppCompatActivity() {
                     set(Calendar.MILLISECOND, 0)
                     add(Calendar.MINUTE, -reminderMinute)
 
-                    // If the time has already passed this week, schedule for next week
-                    if (timeInMillis <= System.currentTimeMillis()) {
+                    // If alarm time is in the past this week, schedule for next week
+                    if (timeInMillis <= now) {
                         add(Calendar.WEEK_OF_YEAR, 1)
                     }
                 }
 
-                val intent = Intent(this, ScheduleReminderReceiver::class.java).apply {
-                    putExtra("title", schedule.title)
-                    putExtra("time", schedule.time)
-                    putExtra("minutes_before", reminderMinute)
-                    putExtra("schedule_id", schedule.id)
-                }
+                // Only schedule if the reminder time is in the future
+                if (targetCal.timeInMillis > now) {
+                    val intent = Intent(this, ScheduleReminderReceiver::class.java).apply {
+                        putExtra("title", schedule.title)
+                        putExtra("time", schedule.time)
+                        putExtra("minutes_before", reminderMinute)
+                        putExtra("schedule_id", schedule.id)
+                    }
 
-                val requestCode = schedule.id * 100 + reminderMinute
+                    val requestCode = schedule.id * 100 + reminderMinute
 
-                val pendingIntent = PendingIntent.getBroadcast(
-                    this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                )
-                
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
-                } else {
-                    alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
+                    val pendingIntent = PendingIntent.getBroadcast(
+                        this, requestCode, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
+                    } else {
+                        alarmManager.setExact(AlarmManager.RTC_WAKEUP, targetCal.timeInMillis, pendingIntent)
+                    }
                 }
             }
         }

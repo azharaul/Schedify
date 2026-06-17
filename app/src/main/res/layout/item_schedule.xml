@@ -38,7 +38,7 @@
             android:textColor="@color/text_title"
             android:textSize="14sp"
             android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/durationBadge"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/viewColorTag"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -96,27 +96,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <FrameLayout
-            android:id="@+id/durationBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
-            android:background="@drawable/duration_badge_bg"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <TextView
-                android:id="@+id/tvDuration"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="1h 30m"
-                android:textColor="@color/text_badge"
-                android:textSize="10sp"
-                android:textStyle="bold" />
-        </FrameLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
